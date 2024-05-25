@@ -1,30 +1,43 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.http import Http404
 
 from .models import Post, Category
+
+NUM_POSTS_TO_DISPLAY = 5
 
 
 def get_posts(post_objects):
     """Фильтрация постов."""
     return post_objects.filter(
-        pub_date__lte=timezone.now(),
         is_published=True,
-        category__is_published=True
+        category__is_published=True,
+        pub_date__lt=timezone.now()
     )
 
 
 def index(request):
-    """Отображение 5 последних постов."""
+    """Отображение последних NUM_POSTS_TO_DISPLAY постов."""
     template = 'blog/index.html'
-    post_list = get_posts(Post.objects).order_by('-pub_date')[:5]
+    post_list = get_posts(Post.objects.select_related('category')) \
+        .order_by('-pub_date')[:NUM_POSTS_TO_DISPLAY]
+
     context = {'post_list': post_list}
     return render(request, template, context)
 
 
-def post_detail(request, id):
+def post_detail(request, post_id):
     """Отображение деталей конкретного поста."""
     template = 'blog/detail.html'
-    post = get_object_or_404(get_posts(Post.objects), id=id)
+    try:
+        post = Post.objects.get(
+            id=post_id,
+            is_published=True,
+            pub_date__lt=timezone.now(),
+            category__is_published=True
+        )
+    except Post.DoesNotExist:
+        raise Http404("Пост не существует или не опубликован.")
     context = {'post': post}
     return render(request, template, context)
 
@@ -37,6 +50,9 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True
     )
-    post_list = get_posts(category.posts)
+
+    post_list = get_posts(
+        Post.objects.filter(category=category).select_related('category')
+    )
     context = {'category': category, 'post_list': post_list}
     return render(request, template, context)
