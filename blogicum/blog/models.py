@@ -12,11 +12,13 @@ class BaseModel(models.Model):
         verbose_name=_('Опубликовано'),
         help_text=_('Снимите галочку, чтобы скрыть публикацию.')
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Добавлено'))
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Добавлено')
+    )
 
     class Meta:
         abstract = True
-
 
 
 class Category(BaseModel):
@@ -91,7 +93,7 @@ class Post(BaseModel):
         related_name='posts',  # Устанавливаем имя обратной связи
         help_text=_('Выберите категорию публикации')
     )
-    
+
     class Meta:
         verbose_name = _('публикация')
         verbose_name_plural = _('Публикации')
