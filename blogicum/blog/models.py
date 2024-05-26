@@ -6,18 +6,20 @@ MAX_LENGTH = 256
 User = get_user_model()
 
 
-class PublishedModel(models.Model):
+class BaseModel(models.Model):
     is_published = models.BooleanField(
         default=True,
         verbose_name=_('Опубликовано'),
         help_text=_('Снимите галочку, чтобы скрыть публикацию.')
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Добавлено'))
 
     class Meta:
         abstract = True
 
 
-class Category(PublishedModel):
+
+class Category(BaseModel):
     title = models.CharField(
         max_length=MAX_LENGTH,
         verbose_name=_('Заголовок'),
@@ -34,25 +36,17 @@ class Category(PublishedModel):
                     'разрешены символы латиницы, цифры, '
                     'дефис и подчёркивание.')
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Добавлено')
-    )
 
     class Meta:
         verbose_name = _('категория')
         verbose_name_plural = _('Категории')
 
 
-class Location(PublishedModel):
+class Location(BaseModel):
     name = models.CharField(
         max_length=MAX_LENGTH,
         verbose_name=_('Название места'),
         help_text=_('Введите название места')
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Добавлено')
     )
 
     class Meta:
@@ -60,7 +54,7 @@ class Location(PublishedModel):
         verbose_name_plural = _('Местоположения')
 
 
-class Post(PublishedModel):
+class Post(BaseModel):
     title = models.CharField(
         max_length=MAX_LENGTH,
         verbose_name=_('Заголовок'),
@@ -97,11 +91,7 @@ class Post(PublishedModel):
         related_name='posts',  # Устанавливаем имя обратной связи
         help_text=_('Выберите категорию публикации')
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_('Добавлено')
-    )
-
+    
     class Meta:
         verbose_name = _('публикация')
         verbose_name_plural = _('Публикации')

@@ -13,14 +13,13 @@ def get_posts(post_objects):
         is_published=True,
         category__is_published=True,
         pub_date__lt=timezone.now()
-    )
+    ).prefetch_related('category')
 
 
 def index(request):
     """Отображение последних NUM_POSTS_TO_DISPLAY постов."""
     template = 'blog/index.html'
-    post_list = get_posts(Post.objects.select_related('category')) \
-        .order_by('-pub_date')[:NUM_POSTS_TO_DISPLAY]
+    post_list = get_posts(Post.objects)[:NUM_POSTS_TO_DISPLAY]
 
     context = {'post_list': post_list}
     return render(request, template, context)
@@ -51,8 +50,6 @@ def category_posts(request, category_slug):
         is_published=True
     )
 
-    post_list = get_posts(
-        Post.objects.filter(category=category).select_related('category')
-    )
+    post_list = get_posts(Post.objects.filter(category=category))
     context = {'category': category, 'post_list': post_list}
     return render(request, template, context)
