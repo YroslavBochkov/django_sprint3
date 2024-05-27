@@ -13,7 +13,7 @@ def get_posts(post_objects):
         is_published=True,
         category__is_published=True,
         pub_date__lt=timezone.now()
-    ).prefetch_related('category')
+    ).select_related('category')
 
 
 def index(request):
@@ -21,7 +21,9 @@ def index(request):
     template = 'blog/index.html'
     post_list = get_posts(Post.objects)[:NUM_POSTS_TO_DISPLAY]
 
-    context = {'post_list': post_list}
+    categories = Category.objects.filter(is_published=True)
+
+    context = {'post_list': post_list, 'categories': categories}
     return render(request, template, context)
 
 
@@ -29,14 +31,14 @@ def post_detail(request, post_id):
     """Отображение деталей конкретного поста."""
     template = 'blog/detail.html'
     try:
-        post = Post.objects.get(
+        post = Post.objects.select_related('category').get(
             id=post_id,
             is_published=True,
             pub_date__lt=timezone.now(),
             category__is_published=True
         )
     except Post.DoesNotExist:
-        raise Http404("Пост не существует или не опубликован.")
+        raise Http404('Пост не существует или не опубликован.')
     context = {'post': post}
     return render(request, template, context)
 
