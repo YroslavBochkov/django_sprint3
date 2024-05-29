@@ -27,7 +27,6 @@ def index(request):
     return render(request, template, context)
 
 
-
 def post_detail(request, post_id):
     """Отображение деталей конкретного поста."""
     template = 'blog/detail.html'
