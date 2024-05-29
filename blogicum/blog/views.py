@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.http import Http404
 
-from .models import Post, Category
+from .models import Post, Category, Location
 
 NUM_POSTS_TO_DISPLAY = 5
 
@@ -13,18 +13,19 @@ def get_posts(post_objects):
         is_published=True,
         category__is_published=True,
         pub_date__lt=timezone.now()
-    ).select_related('category')
+    ).select_related('category').prefetch_related('location')
 
 
 def index(request):
     """Отображение последних NUM_POSTS_TO_DISPLAY постов."""
     template = 'blog/index.html'
-    post_list = get_posts(Post.objects)[:NUM_POSTS_TO_DISPLAY]
 
-    categories = Category.objects.filter(is_published=True)
+    post_list = get_posts(Post.objects).all()[:NUM_POSTS_TO_DISPLAY]
+    locations = Location.objects.all()
 
-    context = {'post_list': post_list, 'categories': categories}
+    context = {'post_list': post_list, 'locations': locations}
     return render(request, template, context)
+
 
 
 def post_detail(request, post_id):
@@ -53,5 +54,13 @@ def category_posts(request, category_slug):
     )
 
     post_list = get_posts(Post.objects.filter(category=category))
-    context = {'category': category, 'post_list': post_list}
+    all_categories = Category.objects.filter(is_published=True)
+    all_locations = Location.objects.all()
+
+    context = {
+        'category': category,
+        'post_list': post_list,
+        'all_categories': all_categories,
+        'all_locations': all_locations
+    }
     return render(request, template, context)
