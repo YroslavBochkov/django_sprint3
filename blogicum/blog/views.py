@@ -20,7 +20,10 @@ def index(request):
     """Отображение последних NUM_POSTS_TO_DISPLAY постов."""
     template = 'blog/index.html'
 
-    post_list = get_posts(Post.objects).all()[:NUM_POSTS_TO_DISPLAY]
+    post_list = (
+        get_posts(Post.objects.all().prefetch_related('category', 'location'))
+        .all()[:NUM_POSTS_TO_DISPLAY]
+    )
     locations = Location.objects.all()
 
     context = {'post_list': post_list, 'locations': locations}
@@ -46,6 +49,7 @@ def post_detail(request, post_id):
 def category_posts(request, category_slug):
     """Отображение всех постов в конкретной категории."""
     template = 'blog/category.html'
+
     category = get_object_or_404(
         Category,
         slug=category_slug,
@@ -53,13 +57,12 @@ def category_posts(request, category_slug):
     )
 
     post_list = get_posts(Post.objects.filter(category=category))
-    all_categories = Category.objects.filter(is_published=True)
     all_locations = Location.objects.all()
 
     context = {
         'category': category,
         'post_list': post_list,
-        'all_categories': all_categories,
-        'all_locations': all_locations
+        'all_locations': all_locations,
     }
+
     return render(request, template, context)
