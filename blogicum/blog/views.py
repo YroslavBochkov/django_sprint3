@@ -13,18 +13,16 @@ def get_posts(post_objects):
         is_published=True,
         category__is_published=True,
         pub_date__lt=timezone.now()
-    ).select_related('category').prefetch_related('location')
+    ).select_related('category', 'location')
 
 
 def index(request):
     template = 'blog/index.html'
 
     post_list = get_posts(Post.objects.all())[:NUM_POSTS_TO_DISPLAY]
-    all_locations = Location.objects.all()
 
     context = {
         'post_list': post_list,
-        'all_locations': all_locations,
     }
     return render(request, template, context)
 
