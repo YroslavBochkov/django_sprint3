@@ -13,7 +13,7 @@ def get_posts(post_objects):
         is_published=True,
         category__is_published=True,
         pub_date__lt=timezone.now()
-    ).select_related('category', 'location')
+    ).select_related('category', 'author').prefetch_related('location')
 
 
 def index(request):
@@ -31,11 +31,15 @@ def post_detail(request, post_id):
     """Отображение деталей конкретного поста."""
     template = 'blog/detail.html'
     try:
-        post = Post.objects.select_related('category').get(
-            id=post_id,
-            is_published=True,
-            pub_date__lt=timezone.now(),
-            category__is_published=True
+        post = (
+            Post.objects.select_related('category', 'author')
+            .prefetch_related('location')
+            .get(
+                id=post_id,
+                is_published=True,
+                pub_date__lt=timezone.now(),
+                category__is_published=True
+            )
         )
     except Post.DoesNotExist:
         raise Http404('Пост не существует или не опубликован.')
@@ -57,7 +61,7 @@ def category_posts(request, category_slug):
         category=category,
         is_published=True,
         pub_date__lt=timezone.now()
-    ).select_related('category').prefetch_related('location')
+    ).select_related('category', 'author').prefetch_related('location')
 
     all_locations = Location.objects.all()
 
